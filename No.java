@@ -1,16 +1,13 @@
-public class No {
-    Voo voo;
-    No prox;
-    No ant;
+import java.util.*;
 
-    public No(Voo voo) {
-        this.voo = voo;
-        this.prox = null;
-        this.ant = null;
+public class No {
+    public String nome;
+    public int x, y;
+    public List<No> adjacentes = new ArrayList<>();
+
+    public No(String nome, int x, int y) {
+        this.nome = nome;
+        this.x = x;
+        this.y = y;
     }
 }
-   
-   
-
-
-
