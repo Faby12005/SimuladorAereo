@@ -12,26 +12,29 @@ public class PainelMapa extends JPanel {
     public PainelMapa() {
         setPreferredSize(new Dimension(800, 600));
 
-        // Adicionando aeroportos fictícios com coordenadas X e Y
-        aeroportos.add(new AeroportoVisual("Praia", 150, 300)); 
-        aeroportos.add(new AeroportoVisual("Fogo", 300, 250));
-        aeroportos.add(new AeroportoVisual("São Vicente", 250, 200)); 
-
-        aeroportos.add(new AeroportoVisual("Sal", 500, 100)); 
-        aeroportos.add(new AeroportoVisual("São Nicolau", 550, 250));
-        aeroportos.add(new AeroportoVisual("Boavista", 450, 200));
-
-        aeroportos.add(new AeroportoVisual("Maio", 250, 500));
+        aeroportos.add(new AeroportoVisual("Santo Antão", 100, 100));
+        aeroportos.add(new AeroportoVisual("São Vicente", 150, 150));
+        aeroportos.add(new AeroportoVisual("São Nicolau", 230, 170));
+        aeroportos.add(new AeroportoVisual("Sal", 400, 100));
+        aeroportos.add(new AeroportoVisual("Boa Vista", 400, 200));
+        aeroportos.add(new AeroportoVisual("Maio", 480, 380));
+        aeroportos.add(new AeroportoVisual("Santiago", 350, 400));
+        aeroportos.add(new AeroportoVisual("Fogo ", 250, 500));
+        aeroportos.add(new AeroportoVisual("Brava", 200, 530));
 
         // Adicionando voos simulados (rotas)
-      
+
         rotas.add(new Rota("São Vicente", "São Nicolau", this));
+        rotas.add(new Rota("Sal", "Boa Vista", this));
+        rotas.add(new Rota("Santiago", "Fogo", this));
+        rotas.add(new Rota("Fogo", "Brava", this));
+        rotas.add(new Rota("Sal", "Santiago", this));
         rotas.add(new Rota("São Nicolau", "Sal", this));
-        rotas.add(new Rota("Sal", "Boavista", this));
-        rotas.add(new Rota("Boavista", "Maio", this));
-        rotas.add(new Rota("Maio", "Praia", this));
-        rotas.add(new Rota("Praia", "Fogo", this));
-      
+        rotas.add(new Rota("Maio", "Santiago", this));
+        rotas.add(new Rota("Fogo", "Santiago", this));
+        rotas.add(new Rota("Fogo", "Brava", this));
+
+
 
         for (Rota r : rotas) {
             r.iniciarAnimacao();

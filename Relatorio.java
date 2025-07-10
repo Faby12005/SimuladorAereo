@@ -1,60 +1,77 @@
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.swing.JOptionPane;
+import java.time.LocalTime;
+import java.util.Random;
 
 public class Relatorio {
-    public static Lista listaVoos = new Lista();
+    private static PilhaMensagens pilha = new PilhaMensagens();
+    private static Timer timer;
 
+    private static final String[] voos = {"CV101", "CV202", "CV303", "CV404", "CV505", "CV606"};
+    private static int totalRealizados = 0;
+    private static int totalCancelados = 0;
+
+    // Inicia a geração automática de relatórios a cada 5 segundos
+    public static void iniciarRelatorioAutomatico() {
+        if (timer == null) {
+            timer = new Timer(5000, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    gerarRelatorioAutomatico();
+        }       }
+        );
+            timer.start();
+        }
+    }
+
+    // Método interno que gera relatório automático e empilha a mensagem
+    private static void gerarRelatorioAutomatico() {
+        Random rand = new Random();
+        String codigo = voos[rand.nextInt(voos.length)];
+        boolean realizado = rand.nextBoolean();
+        String status = realizado ? "Realizado" : "Cancelado";
+        String hora = LocalTime.now().withNano(0).toString();
+
+        if (realizado) totalRealizados++;
+        else totalCancelados++;
+
+        String mensagem = "✈️ Voo " + codigo + " " + status +
+                          " às " + hora +
+                          " ⇒ Totais: R=" + totalRealizados +
+                          " | C=" + totalCancelados;
+        pilha.push(mensagem);
+
+        // Se quiser exibir popup toda hora, descomente:
+        // JOptionPane.showMessageDialog(null, mensagem, "📊 Relatório de Voos", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    // Gera o relatório formatado para o dia informado
     public static String gerarRelatorio(LocalDate data) {
-        int numVoosHoje = 0;
-        int numVoosAmanha = 0;
-
-        No atual = listaVoos.getInicio();
-        while (atual != null) {
-            LocalDate dataVoo = atual.voo.getData();
-            if (dataVoo != null) {
-                if (dataVoo.equals(data)) {
-                    numVoosHoje++;
-                } else if (dataVoo.equals(data.plusDays(1))) {
-                    numVoosAmanha++;
-                }
-            }
-            atual = atual.prox;
-        }
-
-        int passageirosHoje = Compras.totalPassageirosPorData(data);
-        int criancas = Compras.totalPassageirosPorFaixaEtaria(data, "Criança");
-        int adultos = Compras.totalPassageirosPorFaixaEtaria(data, "Adulto");
-        int idosos = Compras.totalPassageirosPorFaixaEtaria(data, "Idoso");
-
-        Map<String, Integer> passageirosPorOrigem = new HashMap<>();
-        List<Compra> comprasHoje = Compras.getComprasPorData(data);
-        for (Compra compra : comprasHoje) {
-            String origem = compra.getVoo().getOrigem();
-            passageirosPorOrigem.put(origem, passageirosPorOrigem.getOrDefault(origem, 0) + 1);
-        }
-
         StringBuilder sb = new StringBuilder();
-        sb.append("Relatório do Aeroporto para o dia ").append(data).append(":\n");
-        sb.append("Voos realizados hoje: ").append(numVoosHoje).append("\n");
-        sb.append("Voos previstos para amanhã: ").append(numVoosAmanha).append("\n");
-        sb.append("Total de passageiros hoje: ").append(passageirosHoje).append("\n");
-        sb.append(" - Crianças: ").append(criancas).append("\n");
-        sb.append(" - Adultos: ").append(adultos).append("\n");
-        sb.append(" - Idosos: ").append(idosos).append("\n");
-        sb.append("Passageiros por ilha de origem:\n");
-        for (Map.Entry<String, Integer> entry : passageirosPorOrigem.entrySet()) {
-            sb.append("  * ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-        }
-        sb.append("Equipamentos gastos: (a implementar)\n");
+        sb.append("📊 RELATÓRIO DE VOOS EM ").append(data).append("\n\n");
+        sb.append("Total de voos realizados: ").append(totalRealizados).append("\n");
+        sb.append("Total de voos cancelados: ").append(totalCancelados).append("\n\n");
+
+        sb.append("📌 Histórico recente:\n");
+        sb.append(pilha.listar());
 
         return sb.toString();
     }
 
-    public static void mostrarRelatorio(LocalDate data) {
-        String textoRelatorio = gerarRelatorio(data);
-        JOptionPane.showMessageDialog(null, textoRelatorio, "Relatório de Voos", JOptionPane.INFORMATION_MESSAGE);
+    // Retorna todo o histórico da pilha como string
+    public static String historico() {
+        return pilha.listar();
+    }
+
+    // Remove e retorna a última mensagem adicionada (pop)
+    public static String desempilharRelatorio() {
+        return pilha.pop();
+    }
+
+    // Exibe todo o histórico completo em uma caixa de diálogo
+    public static void exibirHistoricoCompleto() {
+        JOptionPane.showMessageDialog(null, pilha.listar(), "Histórico de Relatórios", JOptionPane.INFORMATION_MESSAGE);
     }
 }

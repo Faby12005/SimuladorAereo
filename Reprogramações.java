@@ -44,7 +44,7 @@ public class Reprogramações {
 
     public static void registrarAlteracao(String alteracao) {
         pilha.empilhar(alteracao);
-        JOptionPane.showMessageDialog(null, "Alteração automática registrada com sucesso!");
+        
     }
 
     public static void mostrarHistorico() {

@@ -7,9 +7,13 @@ public class Passageiro {
         this.idade = idade;
     }
 
+    
+
     public Passageiro(String string) {
         //TODO Auto-generated constructor stub
     }
+
+
 
     public String getFaixaEtaria() {
         if (idade < 12) return "Criança";

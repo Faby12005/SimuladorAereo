@@ -5,7 +5,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
 
-
 public class SimuladorTransporteAereo extends JFrame {
     private JPanel painelPrincipal;
     private CardLayout cardLayout;
@@ -17,8 +16,9 @@ public class SimuladorTransporteAereo extends JFrame {
     private JTable tabelaVoos;
     private DefaultListModel<String> modeloReprogramacoes = new DefaultListModel<>();
     private JTextArea relatorioText;
-
-    
+    private JPanel painelRelatorios;
+    private PilhaMensagens pilhaMensagens = new PilhaMensagens();
+    private JTextArea logAtualizacoesText;
 
     private String[] voos = {"CV101", "CV202", "CV303"};
     private String[] precos = {"100$", "150$", "200$"};
@@ -33,12 +33,16 @@ public class SimuladorTransporteAereo extends JFrame {
         setSize(600, 450);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        new javax.swing.Timer(5000, e -> {
-            if (isVisible()) {
-                atualizarRelatorio();
-            }
-        }).start();
-        
+     Relatorio.iniciarRelatorioAutomatico();
+
+        Reprogramações.iniciarGeradorAutomatico(); // Ativa o gerador automático de reprogramações
+
+       new javax.swing.Timer(5000, e -> {
+    if (painelRelatorios != null && painelRelatorios.isShowing()) {
+        atualizarRelatorio();
+    }
+}).start();
+
         // Criação dos voos com data (exemplo 6 de julho de 2025)
         listaVoos.adicionar(new Voo("CV101", "São Vicente", "Sal", "08:30", LocalDate.of(2025,7,6)));
         listaVoos.adicionar(new Voo("CV202", "Praia", "Boa Vista", "09:15", LocalDate.of(2025,7,6)));
@@ -86,15 +90,15 @@ public class SimuladorTransporteAereo extends JFrame {
         itemVoltarInicio.addActionListener(e -> cardLayout.show(painelPrincipal, "inicial"));
         itemSimular.addActionListener(e -> cardLayout.show(painelPrincipal, "simulacoes"));
         itemDecidir.addActionListener(e -> {
+            Relatorio.exibirHistoricoCompleto();
             atualizarHistoricoDecisoes();
             atualizarTabelaHorarios(tabelaVoos, listaVoos);
             cardLayout.show(painelPrincipal, "decisoes");
         });
         itemRelatorio.addActionListener(e -> {
-    cardLayout.show(painelPrincipal, "relatorios");
-    atualizarRelatorio();  // atualiza o texto do JTextArea imediatamente
-});
-
+            cardLayout.show(painelPrincipal, "relatorios");
+            atualizarRelatorio();  // atualiza o texto do JTextArea imediatamente
+        });
         itemComprar.addActionListener(e -> cardLayout.show(painelPrincipal, "comprar"));
 
         iniciarAtualizacaoDecisoes();
@@ -121,15 +125,39 @@ public class SimuladorTransporteAereo extends JFrame {
         return painelInicial;
     }
 
-    private JPanel criarPainelSimulacoes() {
-        JPanel painelSimulacoes = new JPanel(new BorderLayout());
-        JLabel titulo = new JLabel("Mapa Interativo de Voos", SwingConstants.CENTER);
-        titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
-        titulo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        painelSimulacoes.add(titulo, BorderLayout.NORTH);
-        painelSimulacoes.add(new PainelMapa(), BorderLayout.CENTER);
-        return painelSimulacoes;
-    }
+    private JPanel criarPainelRelatorio() {
+    JPanel painelRelatorios = new JPanel();
+    painelRelatorios.setLayout(null);
+
+    relatorioText = new JTextArea();
+    relatorioText.setEditable(false);
+    JScrollPane scroll = new JScrollPane(relatorioText);
+    scroll.setBounds(10, 10, 750, 380);
+    painelRelatorios.add(scroll);
+
+    JButton btnAtualizar = new JButton("🔄 Atualizar Relatório");
+    btnAtualizar.setBounds(10, 400, 200, 30);
+    btnAtualizar.addActionListener(e -> atualizarRelatorio());
+    painelRelatorios.add(btnAtualizar);
+
+    JButton btnHistorico = new JButton("📋 Ver Histórico de Relatórios");
+    btnHistorico.setBounds(220, 400, 250, 30);
+    btnHistorico.addActionListener(e -> Relatorio.exibirHistoricoCompleto());
+    painelRelatorios.add(btnHistorico);
+
+    // Inicializa com o relatório real gerado
+    relatorioText.setText(Relatorio.gerarRelatorio(LocalDate.now()));
+
+    return painelRelatorios;
+}
+
+
+private JPanel criarPainelSimulacoes() {
+    JPanel painelSimulacoes = new JPanel();
+    JLabel label = new JLabel("🔧 Painel de Simulação de Voos (em construção)");
+    painelSimulacoes.add(label);
+    return painelSimulacoes;
+}
 
     private JPanel criarPainelDecisoes() {
         JPanel painelDecisoes = new JPanel(new BorderLayout()) {
@@ -187,32 +215,25 @@ public class SimuladorTransporteAereo extends JFrame {
                 atual.voo.getCodigo(),
                 atual.voo.getOrigem(),
                 atual.voo.getDestino(),
-                atual.voo.getHorario()
+                atual.voo.getHorario(),
             });
             atual = atual.prox;
         }
     }
-
-
-    
-    private JPanel criarPainelRelatorios() {
-    JPanel p = new JPanel(new BorderLayout());
+private JPanel criarPainelRelatorios() {
+    painelRelatorios = new JPanel(new BorderLayout());
 
     relatorioText = new JTextArea();
     relatorioText.setEditable(false);
     relatorioText.setFont(new Font("Monospaced", Font.PLAIN, 14));
     JScrollPane scroll = new JScrollPane(relatorioText);
-    p.add(scroll, BorderLayout.CENTER);
+    painelRelatorios.add(scroll, BorderLayout.CENTER);
 
-    // Inicializa o texto com relatório atual
+    // Inicializa com o relatório real gerado, sem nada mais
     relatorioText.setText(Relatorio.gerarRelatorio(LocalDate.now()));
 
-    return p;
+    return painelRelatorios;
 }
-private void atualizarRelatorio() {
-    relatorioText.setText(Relatorio.gerarRelatorio(LocalDate.now()));
-}
-   
 
 
     private JPanel criarPainelComprar() {
@@ -281,8 +302,8 @@ private void atualizarRelatorio() {
     }
 
     private void comprar() {
-        String codigo = txtCodigo.getText().toUpperCase();
-        String nome = txtNome.getText();
+        String codigo = txtCodigo.getText().toUpperCase().trim();
+        String nome = txtNome.getText().trim();
         int qtd = comboQuantidade.getSelectedIndex() + 1;
 
         if (codigo.isEmpty() || nome.isEmpty()) {
@@ -290,7 +311,7 @@ private void atualizarRelatorio() {
             return;
         }
 
-        No atual = Relatorio.listaVoos.getInicio();
+        No atual = listaVoos.getInicio();
         Voo voo = null;
         while (atual != null) {
             if (atual.voo.getCodigo().equalsIgnoreCase(codigo)) {
@@ -306,12 +327,13 @@ private void atualizarRelatorio() {
         }
 
         for (int i = 0; i < qtd; i++) {
-            Passageiro p = new Passageiro(nome + (qtd > 1 ? " " + (i + 1) : ""));
+            Passageiro p = new Passageiro(qtd > 1 ? nome + " " + (i + 1) : nome);
             Compra compra = new Compra(p, voo);
             Compras.adicionarCompra(compra);
         }
 
         JOptionPane.showMessageDialog(this, "Compra efetuada: " + qtd + " bilhete(s) para " + nome + " no voo " + codigo);
+
         txtCodigo.setText("");
         txtNome.setText("");
         comboQuantidade.setSelectedIndex(0);
@@ -329,12 +351,15 @@ private void atualizarRelatorio() {
             }
         }).start();
     }
-
-    private void mostrarRelatorio() {
-        LocalDate hoje = LocalDate.now();
-        String textoRelatorio = Relatorio.gerarRelatorio(hoje);
-        JOptionPane.showMessageDialog(this, textoRelatorio, "Relatório de Voos", JOptionPane.INFORMATION_MESSAGE);
+private void atualizarRelatorio() {
+    if (relatorioText != null) {
+        relatorioText.setText(Relatorio.gerarRelatorio(LocalDate.now()));
+        relatorioText.setCaretPosition(0);  // cursor no topo
     }
+}
+
+
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(SimuladorTransporteAereo::new);
